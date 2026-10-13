@@ -1,0 +1,91 @@
+[project]
+name = "topinspect"
+version = "0.1.0"
+description = "Self-supervised GNN for Network Intrusion Detection"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch==2.5.1",
+    "torch-geometric==2.7.0",
+    "torchaudio==2.5.1",
+    "torchvision==0.20.1",
+    "pyg_lib",
+    "torch-sparse",     # 双保险：Windows 下最稳定的底层加速库
+    "torch-scatter",    # 配合 torch-sparse 使用
+    "scikit-learn>=1.7.2",
+    "pyod>=2.0.0",
+    "numpy>=2.3.4",
+    "scipy>=1.16.3",
+    "pandas>=2.3.3",
+    "pytest>=8.0.0",
+    "wandb>=0.22.3",
+    "pyyaml>=6.0",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "python-multipart>=0.0.9",
+    "sse-starlette>=2.0",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.0.0",
+    "ruff>=0.14.0",
+    "ty",
+]
+
+# 告诉 uv 不要管 Linux，专心服务好你的 Windows 系统
+[tool.uv]
+environments = ["sys_platform == 'win32'"]
+
+[tool.uv.sources]
+# 强制让 torch 家族走专用的 cu124 源
+torch = [ { index = "pytorch-cu124" } ]
+torchvision = [ { index = "pytorch-cu124" } ]
+torchaudio = [ { index = "pytorch-cu124" } ]
+
+# 强制让 pyg 家族走扁平网页源
+pyg_lib = [ { index = "pyg" } ]
+torch-sparse = [ { index = "pyg" } ]
+torch-scatter = [ { index = "pyg" } ]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[[tool.uv.index]]
+name = "pyg"
+url = "https://data.pyg.org/whl/torch-2.5.1+cu124.html"
+format = "flat"     # 就是漏了这一行！！现在补上了！
+explicit = true
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "C4", "SIM",
+]
+ignore = [
+    "E501",
+]
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore:`torch_geometric\\.distributed` has been deprecated since 2\\.7\\.0:DeprecationWarning",
+    "ignore:Failing to pass a value to the 'type_params' parameter of 'typing\\._eval_type' is deprecated:DeprecationWarning",
+    "ignore:The PyTorch API of nested tensors is in prototype stage:UserWarning",
+]
